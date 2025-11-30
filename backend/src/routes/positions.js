@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import Position from '../models/Position.js';
+
 const router = express.Router();
-const Position = require('../models/Position');
 
 // Get all positions (public)
 router.get('/', async (req, res) => {
@@ -48,5 +49,5 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 

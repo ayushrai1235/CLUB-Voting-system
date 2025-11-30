@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const candidateSchema = new mongoose.Schema({
   user: {
@@ -32,5 +32,5 @@ const candidateSchema = new mongoose.Schema({
 // Ensure one candidate per user per position
 candidateSchema.index({ user: 1, position: 1 }, { unique: true });
 
-module.exports = mongoose.model('Candidate', candidateSchema);
+export default mongoose.model('Candidate', candidateSchema);
 

@@ -1,11 +1,12 @@
-const express = require('express');
+import express from 'express';
+import { authenticate } from '../middleware/auth.js';
+import Election from '../models/Election.js';
+import Vote from '../models/Vote.js';
+import Candidate from '../models/Candidate.js';
+import Position from '../models/Position.js';
+import User from '../models/User.js';
+
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
-const Election = require('../models/Election');
-const Vote = require('../models/Vote');
-const Candidate = require('../models/Candidate');
-const Position = require('../models/Position');
-const User = require('../models/User');
 
 // Get results for an election (only if ended)
 router.get('/election/:electionId', async (req, res) => {
@@ -195,5 +196,5 @@ router.get('/export/:electionId', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 

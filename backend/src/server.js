@@ -1,10 +1,22 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js';
+import positionRoutes from './routes/positions.js';
+import candidateRoutes from './routes/candidates.js';
+import electionRoutes from './routes/elections.js';
+import voteRoutes from './routes/votes.js';
+import resultRoutes from './routes/results.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -17,13 +29,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/positions', require('./routes/positions'));
-app.use('/api/candidates', require('./routes/candidates'));
-app.use('/api/elections', require('./routes/elections'));
-app.use('/api/votes', require('./routes/votes'));
-app.use('/api/results', require('./routes/results'));
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/positions', positionRoutes);
+app.use('/api/candidates', candidateRoutes);
+app.use('/api/elections', electionRoutes);
+app.use('/api/votes', voteRoutes);
+app.use('/api/results', resultRoutes);
 
 // Database connection
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/voting-system';

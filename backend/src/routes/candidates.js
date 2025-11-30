@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { authenticate, isMember } from '../middleware/auth.js';
+import Candidate from '../models/Candidate.js';
+import Position from '../models/Position.js';
+import User from '../models/User.js';
+
 const router = express.Router();
-const { authenticate, isMember } = require('../middleware/auth');
-const Candidate = require('../models/Candidate');
-const Position = require('../models/Position');
-const User = require('../models/User');
 
 // Get all approved candidates for a position
 router.get('/position/:positionId', async (req, res) => {
@@ -102,5 +103,5 @@ router.get('/my-applications', authenticate, isMember, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 

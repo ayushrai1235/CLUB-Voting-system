@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import { authenticate } from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
+
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const { authenticate } = require('../middleware/auth');
-const upload = require('../middleware/upload');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -171,5 +172,5 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 

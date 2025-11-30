@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const voteSchema = new mongoose.Schema({
   user: {
@@ -32,5 +32,5 @@ const voteSchema = new mongoose.Schema({
 // Ensure one vote per user per position per election
 voteSchema.index({ user: 1, position: 1, election: 1 }, { unique: true });
 
-module.exports = mongoose.model('Vote', voteSchema);
+export default mongoose.model('Vote', voteSchema);
 

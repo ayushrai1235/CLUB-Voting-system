@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import Election from '../models/Election.js';
+
 const router = express.Router();
-const Election = require('../models/Election');
 
 // Get all elections
 router.get('/', async (req, res) => {
@@ -46,5 +47,5 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 

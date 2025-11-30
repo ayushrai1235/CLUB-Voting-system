@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const electionSchema = new mongoose.Schema({
   name: {
@@ -42,5 +42,5 @@ electionSchema.methods.hasEnded = function() {
   return new Date() > this.endDate;
 };
 
-module.exports = mongoose.model('Election', electionSchema);
+export default mongoose.model('Election', electionSchema);
 

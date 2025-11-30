@@ -2,6 +2,7 @@
   "name": "voting-system-backend",
   "version": "1.0.0",
   "description": "Backend API for College Coding Club Voting System",
+  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

@@ -1,11 +1,12 @@
-const express = require('express');
+import express from 'express';
+import { authenticate, isAdmin } from '../middleware/auth.js';
+import Position from '../models/Position.js';
+import Candidate from '../models/Candidate.js';
+import Election from '../models/Election.js';
+import User from '../models/User.js';
+import Vote from '../models/Vote.js';
+
 const router = express.Router();
-const { authenticate, isAdmin } = require('../middleware/auth');
-const Position = require('../models/Position');
-const Candidate = require('../models/Candidate');
-const Election = require('../models/Election');
-const User = require('../models/User');
-const Vote = require('../models/Vote');
 
 // All admin routes require authentication and admin role
 router.use(authenticate);
@@ -276,5 +277,5 @@ router.get('/statistics', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 
