@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -34,6 +34,8 @@ const ManageElections: React.FC = () => {
     positions: [] as string[]
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const endDateRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchElections();
@@ -149,7 +151,7 @@ const ManageElections: React.FC = () => {
       {message && (
         <div className={cn(
           "rounded-lg border p-4 text-sm",
-          message.type === 'success' 
+          message.type === 'success'
             ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300"
             : "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300"
         )}>
@@ -190,23 +192,37 @@ const ManageElections: React.FC = () => {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-foreground">Start Date & Time *</label>
-                    <input
-                      type="datetime-local"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                      required
-                      className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                    <div className="relative">
+                      <input
+                        ref={startDateRef}
+                        type="datetime-local"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        onClick={() => startDateRef.current?.showPicker()}
+                        required
+                        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring pr-10 cursor-pointer"
+                      />
+                      <Calendar
+                        className="absolute right-3 top-1/2 translate-y-0 h-4 w-4 text-muted-foreground cursor-pointer pointer-events-none"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground">End Date & Time *</label>
-                    <input
-                      type="datetime-local"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                      required
-                      className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                    <div className="relative">
+                      <input
+                        ref={endDateRef}
+                        type="datetime-local"
+                        value={formData.endDate}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                        onClick={() => endDateRef.current?.showPicker()}
+                        required
+                        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring pr-10 cursor-pointer"
+                      />
+                      <Calendar
+                        className="absolute right-3 top-1/2 translate-y-0 h-4 w-4 text-muted-foreground cursor-pointer pointer-events-none"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div>

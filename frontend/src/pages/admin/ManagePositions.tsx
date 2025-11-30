@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { X, Edit, Trash2, Plus } from 'lucide-react';
+import { X, Edit, Trash2, Plus, Award, Shield } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface Position {
@@ -86,13 +86,16 @@ const ManagePositions: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Manage Positions</h1>
-          <p className="text-sm text-muted-foreground">Create and manage election positions</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Manage Positions</h1>
+          <p className="text-muted-foreground">Create and manage election positions</p>
         </div>
-        <Button onClick={() => { setShowForm(true); setEditing(null); setFormData({ name: '', description: '', isElected: true, isFixed: false }); }}>
+        <Button
+          onClick={() => { setShowForm(true); setEditing(null); setFormData({ name: '', description: '', isElected: true, isFixed: false }); }}
+          className="rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Position
         </Button>
@@ -100,75 +103,79 @@ const ManagePositions: React.FC = () => {
 
       {message && (
         <div className={cn(
-          "rounded-lg border p-4 text-sm",
-          message.type === 'success' 
-            ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300"
-            : "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300"
+          "rounded-xl border p-4 text-sm animate-in fade-in slide-in-from-top-2",
+          message.type === 'success'
+            ? "border-green-200 bg-green-50/50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300"
+            : "border-red-200 bg-red-50/50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300"
         )}>
           {message.text}
         </div>
       )}
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <Card className="w-full max-w-lg backdrop-blur-sm bg-card/95 border-2 shadow-2xl">
-            <CardHeader className="flex flex-row items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg backdrop-blur-xl bg-card/95 border-border/50 shadow-2xl">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-border/50">
               <CardTitle>{editing ? 'Edit Position' : 'Create Position'}</CardTitle>
-              <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditing(null); }}>
+              <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditing(null); }} className="rounded-full hover:bg-destructive/10 hover:text-destructive">
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
+                <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Position Name *</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
-                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    placeholder="e.g. President"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Description</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={4}
-                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
+                    placeholder="Describe the responsibilities..."
                   />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isElected"
-                    checked={formData.isElected}
-                    onChange={(e) => setFormData({ ...formData, isElected: e.target.checked })}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
-                  />
-                  <label htmlFor="isElected" className="text-sm font-medium text-foreground">
-                    Is Elected
+                <div className="grid grid-cols-2 gap-4">
+                  <label className={cn(
+                    "flex items-center space-x-3 p-4 rounded-xl border cursor-pointer transition-all",
+                    formData.isElected ? "border-primary bg-primary/5" : "border-input hover:bg-accent"
+                  )}>
+                    <input
+                      type="checkbox"
+                      checked={formData.isElected}
+                      onChange={(e) => setFormData({ ...formData, isElected: e.target.checked })}
+                      className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
+                    />
+                    <span className="text-sm font-medium">Is Elected</span>
+                  </label>
+                  <label className={cn(
+                    "flex items-center space-x-3 p-4 rounded-xl border cursor-pointer transition-all",
+                    formData.isFixed ? "border-primary bg-primary/5" : "border-input hover:bg-accent"
+                  )}>
+                    <input
+                      type="checkbox"
+                      checked={formData.isFixed}
+                      onChange={(e) => setFormData({ ...formData, isFixed: e.target.checked })}
+                      className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
+                    />
+                    <span className="text-sm font-medium">Is Fixed</span>
                   </label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isFixed"
-                    checked={formData.isFixed}
-                    onChange={(e) => setFormData({ ...formData, isFixed: e.target.checked })}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
-                  />
-                  <label htmlFor="isFixed" className="text-sm font-medium text-foreground">
-                    Is Fixed (Not Elected - e.g., President, VP)
-                  </label>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditing(null); }}>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditing(null); }} className="rounded-xl">
                     Cancel
                   </Button>
-                  <Button type="submit">
-                    {editing ? 'Update' : 'Create'}
+                  <Button type="submit" className="rounded-xl">
+                    {editing ? 'Update Position' : 'Create Position'}
                   </Button>
                 </div>
               </form>
@@ -182,39 +189,45 @@ const ManagePositions: React.FC = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {positions.map((position) => (
-            <Card key={position._id} className="backdrop-blur-sm bg-card/90 border-2 hover:shadow-lg transition-all">
-              <CardContent className="flex items-center justify-between p-6">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground">{position.name}</h3>
-                  {position.description && (
-                    <p className="mt-1 text-sm text-muted-foreground">{position.description}</p>
-                  )}
-                  <div className="mt-2 flex gap-2">
-                    {position.isFixed && (
-                      <span className="rounded-full border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
-                        Fixed
-                      </span>
-                    )}
-                    {position.isElected && !position.isFixed && (
-                      <span className="rounded-full border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
-                        Elected
-                      </span>
-                    )}
+            <Card key={position._id} className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                    <Award className="h-6 w-6" />
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(position)} className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(position._id)} className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(position)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(position._id)}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
+
+                <h3 className="text-xl font-bold text-foreground mb-2">{position.name}</h3>
+                {position.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{position.description}</p>
+                )}
+
+                <div className="flex flex-wrap gap-2 mt-auto">
+                  {position.isFixed && (
+                    <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                      <Shield className="mr-1 h-3 w-3" />
+                      Fixed
+                    </span>
+                  )}
+                  {position.isElected && !position.isFixed && (
+                    <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
+                      <Award className="mr-1 h-3 w-3" />
+                      Elected
+                    </span>
+                  )}
                 </div>
               </CardContent>
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Card>
           ))}
         </div>

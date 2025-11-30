@@ -23,52 +23,59 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   }, []);
 
   return (
-    <div className="min-h-screen gradient-bg-subtle pattern-grid relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
+      {/* Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px]" />
       </div>
-      <Navbar />
-      
+
+      <div className="relative z-10">
+        <Navbar />
+      </div>
+
       {/* Mobile Sidebar Toggle Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden fixed top-20 left-4 z-40 p-2 rounded-md bg-card border border-border shadow-lg hover:bg-accent transition-all duration-300"
+        className="md:hidden fixed bottom-6 right-6 z-50 p-4 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all duration-300 hover:scale-110 active:scale-95"
         aria-label="Toggle sidebar"
       >
         {sidebarOpen ? (
-          <X className="h-5 w-5 transition-transform duration-300" />
+          <X className="h-6 w-6" />
         ) : (
-          <Menu className="h-5 w-5 transition-transform duration-300" />
+          <Menu className="h-6 w-6" />
         )}
       </button>
 
       {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-30 transition-opacity duration-300"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      <div
+        className={cn(
+          "md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40 transition-all duration-300",
+          sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setSidebarOpen(false)}
+      />
 
-      <div className="flex relative z-10">
+      <div className="flex flex-1 relative z-10 h-[calc(100vh-4rem)] overflow-hidden">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block">
+        <div className="hidden md:block h-full">
           <Sidebar />
         </div>
 
         {/* Mobile Sidebar */}
         <div
           className={cn(
-            "md:hidden fixed top-16 left-0 h-[calc(100vh-4rem)] z-40 transition-transform duration-300 ease-in-out",
+            "md:hidden fixed inset-y-0 left-0 w-72 z-50 transform transition-transform duration-300 ease-out shadow-2xl",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
           <Sidebar onNavigate={() => setSidebarOpen(false)} />
         </div>
 
-        <main className="flex-1 p-4 md:p-6 w-full md:w-auto transition-all duration-300">
-          {children}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full scroll-smooth">
+          <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {children}
+          </div>
         </main>
       </div>
     </div>

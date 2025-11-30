@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Trash2, User, Mail, FileText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface Candidate {
@@ -80,48 +80,52 @@ const ManageCandidates: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      pending: { class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300', text: 'Pending' },
-      approved: { class: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300', text: 'Approved' },
-      rejected: { class: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300', text: 'Rejected' },
+      pending: { class: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800', text: 'Pending' },
+      approved: { class: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800', text: 'Approved' },
+      rejected: { class: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800', text: 'Rejected' },
     };
     const badge = badges[status as keyof typeof badges] || badges.pending;
     return (
-      <span className={cn("rounded-full px-2 py-1 text-xs font-medium", badge.class)}>
+      <span className={cn("rounded-full px-3 py-1 text-xs font-semibold border", badge.class)}>
         {badge.text}
       </span>
     );
   };
 
-  const filteredCandidates = filter === 'all' 
-    ? candidates 
+  const filteredCandidates = filter === 'all'
+    ? candidates
     : candidates.filter(c => c.status === filter);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Manage Candidates</h1>
-        <p className="text-sm text-muted-foreground">Review and manage candidate applications</p>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Manage Candidates</h1>
+        <p className="text-muted-foreground">Review and manage candidate applications</p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 p-1 bg-muted/50 rounded-xl w-fit">
         {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
-          <Button
+          <button
             key={f}
-            variant={filter === f ? 'default' : 'outline'}
-            size="sm"
             onClick={() => setFilter(f)}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+              filter === f
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+            )}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
-          </Button>
+          </button>
         ))}
       </div>
 
       {message && (
         <div className={cn(
-          "rounded-lg border p-4 text-sm",
-          message.type === 'success' 
-            ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300"
-            : "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300"
+          "rounded-xl border p-4 text-sm animate-in fade-in slide-in-from-top-2",
+          message.type === 'success'
+            ? "border-green-200 bg-green-50/50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300"
+            : "border-red-200 bg-red-50/50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300"
         )}>
           {message.text}
         </div>
@@ -132,64 +136,81 @@ const ManageCandidates: React.FC = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filteredCandidates.length > 0 ? (
             filteredCandidates.map((candidate) => (
-              <Card key={candidate._id} className="backdrop-blur-sm bg-card/90 border-2 hover:shadow-lg transition-all">
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
-                    <img
-                      src={`http://localhost:5000${candidate.user.profilePhoto}`}
-                      alt={candidate.user.name}
-                      className="h-20 w-20 rounded-full border-2 border-border object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/default-avatar.png';
-                      }}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{candidate.user.name}</h3>
-                          <p className="text-sm text-muted-foreground">{candidate.user.email}</p>
-                          <p className="mt-1 text-sm font-medium text-foreground">
-                            Position: {candidate.position.name}
-                          </p>
-                        </div>
-                        {getStatusBadge(candidate.status)}
+              <Card key={candidate._id} className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <CardContent className="p-0">
+                  <div className="relative h-24 bg-gradient-to-r from-primary/10 to-primary/5">
+                    <div className="absolute -bottom-10 left-6">
+                      <img
+                        src={`http://localhost:5000${candidate.user.profilePhoto}`}
+                        alt={candidate.user.name}
+                        className="h-20 w-20 rounded-full border-4 border-background object-cover shadow-md"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/default-avatar.png';
+                        }}
+                      />
+                    </div>
+                    <div className="absolute top-4 right-4">
+                      {getStatusBadge(candidate.status)}
+                    </div>
+                  </div>
+
+                  <div className="pt-12 px-6 pb-6 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground">{candidate.user.name}</h3>
+                      <div className="flex items-center text-sm text-muted-foreground mt-1">
+                        <Mail className="h-3 w-3 mr-1" />
+                        {candidate.user.email}
                       </div>
-                      <div className="mt-4 rounded-lg border border-border bg-muted/50 p-3">
-                        <p className="text-sm font-medium text-foreground">Manifesto:</p>
-                        <p className="mt-1 text-sm text-muted-foreground">{candidate.manifesto}</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Running For</div>
+                      <div className="font-semibold text-primary">{candidate.position.name}</div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm font-medium text-foreground">
+                        <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                        Manifesto
                       </div>
-                      <div className="mt-4 flex gap-2">
-                        {candidate.status === 'pending' && (
-                          <>
-                            <Button size="sm" onClick={() => handleApprove(candidate._id)}>
-                              <CheckCircle2 className="mr-2 h-4 w-4" />
-                              Approve
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleReject(candidate._id)}>
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                        <Button size="sm" variant="outline" onClick={() => handleDelete(candidate._id)}>
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </Button>
-                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-3 pl-6">
+                        {candidate.manifesto}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 flex gap-2 border-t border-border/50">
+                      {candidate.status === 'pending' && (
+                        <>
+                          <Button size="sm" className="flex-1 rounded-lg bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(candidate._id)}>
+                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                            Approve
+                          </Button>
+                          <Button size="sm" variant="destructive" className="flex-1 rounded-lg" onClick={() => handleReject(candidate._id)}>
+                            <XCircle className="mr-2 h-4 w-4" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      <Button size="sm" variant="outline" className="rounded-lg ml-auto hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50" onClick={() => handleDelete(candidate._id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))
           ) : (
-            <Card className="backdrop-blur-sm bg-card/90 border-2">
-              <CardContent className="p-6 text-center text-muted-foreground">
-                No candidates found.
-              </CardContent>
-            </Card>
+            <div className="col-span-full">
+              <Card className="border-border/50 bg-card/50 backdrop-blur-xl border-dashed">
+                <CardContent className="p-12 text-center text-muted-foreground">
+                  <User className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <p>No candidates found matching your filter.</p>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
       )}

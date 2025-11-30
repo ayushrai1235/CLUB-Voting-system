@@ -1,95 +1,101 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Vote, Users, BarChart3, Sparkles } from 'lucide-react';
+import { Vote, Users, BarChart3, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen gradient-bg pattern-dots relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
-      </div>
-      
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
       <Navbar />
-      <main className="container mx-auto px-4 py-8 md:py-12 relative z-10">
-        <section className="mb-12 md:mb-16">
-          <Card className="backdrop-blur-sm bg-card/80 border-2 transition-all duration-300 ease-in-out">
-            <CardHeader className="text-center px-4 md:px-6">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4">
-                <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary transition-transform duration-300" />
-                <CardTitle className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Club Voting System
-                </CardTitle>
-              </div>
-              <CardDescription className="text-base md:text-lg">
-                A professional platform for managing club elections
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center px-4 md:px-6">
-              <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 w-full sm:w-auto">
-                <Link to="/signup" className="inline-block w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out">
-                    Get Started
-                  </Button>
-                </Link>
-                <Link to="/login" className="inline-block w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out">
-                    Login
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
 
-        <section className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="group hover:scale-105 transition-all duration-300 ease-in-out border-2">
+      {/* Hero Section */}
+      <main className="flex-1 container mx-auto px-4 py-12 md:py-20 relative z-10 flex flex-col items-center justify-center text-center">
+        {/* Decorative Background Blobs */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none -z-10" />
+
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-8 max-w-4xl">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium animate-float">
+            <Sparkles className="h-4 w-4" />
+            <span>The Future of Club Elections</span>
+          </div>
+
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-tight">
+            Vote with <span className="text-gradient">Confidence</span> & <span className="text-gradient">Transparency</span>
+          </h1>
+
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            A secure, modern, and transparent platform for managing Bits Mavericks club's leadership elections. Empower your members to make their voices heard.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Link to="/signup">
+              <Button size="lg" className="h-14 px-8 rounded-2xl text-lg shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300">
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button variant="outline" size="lg" className="h-14 px-8 rounded-2xl text-lg border-2 hover:bg-accent hover:text-accent-foreground transition-all duration-300">
+                Member Login
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-24 w-full max-w-6xl animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200">
+          <Card className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-all duration-300">
-                <Vote className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                <ShieldCheck className="h-7 w-7 text-primary" />
               </div>
-              <CardTitle>Secure Voting</CardTitle>
+              <CardTitle className="text-xl">Secure & Encrypted</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Cast your vote securely with our encrypted voting system
+              <p className="text-muted-foreground leading-relaxed">
+                Every vote is encrypted and securely stored. Our system ensures complete anonymity and integrity of the election process.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="group hover:scale-105 transition-all duration-300 ease-in-out border-2">
+          <Card className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-all duration-300">
-                <Users className="h-6 w-6 text-primary" />
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                <Users className="h-7 w-7 text-primary" />
               </div>
-              <CardTitle>Leadership</CardTitle>
+              <CardTitle className="text-xl">Candidate Profiles</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                View your club's leadership team and their roles
+              <p className="text-muted-foreground leading-relaxed">
+                Explore detailed manifestos and profiles of all candidates. Make informed decisions before casting your valuable vote.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="group hover:scale-105 transition-all duration-300 ease-in-out border-2 sm:col-span-2 lg:col-span-1">
+          <Card className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2 sm:col-span-2 lg:col-span-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-all duration-300">
-                <BarChart3 className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                <BarChart3 className="h-7 w-7 text-primary" />
               </div>
-              <CardTitle>Results</CardTitle>
+              <CardTitle className="text-xl">Real-time Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                View election results after voting ends
+              <p className="text-muted-foreground leading-relaxed">
+                Watch the results unfold in real-time with beautiful, interactive charts and analytics once the election concludes.
               </p>
             </CardContent>
           </Card>
-        </section>
+        </div>
       </main>
+
+      <footer className="py-8 text-center text-sm text-muted-foreground border-t border-border/50 bg-card/30 backdrop-blur-sm">
+        <p>© {new Date().getFullYear()} Club Voting System. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

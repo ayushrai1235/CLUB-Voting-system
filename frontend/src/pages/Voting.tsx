@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Vote, CheckCircle2, User } from 'lucide-react';
+import { Vote, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface Position {
@@ -38,6 +39,7 @@ interface Election {
 }
 
 const Voting: React.FC = () => {
+  const navigate = useNavigate();
   const [election, setElection] = useState<Election | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [candidatesByPosition, setCandidatesByPosition] = useState<Record<string, Candidate[]>>({});
@@ -54,36 +56,43 @@ const Voting: React.FC = () => {
   const fetchElectionData = async () => {
     try {
       const electionRes = await api.get('/elections/active');
-      if (!electionRes.data) {
-        setMessage({ type: 'error', text: 'No active election at the moment' });
-        setLoading(false);
-        return;
-      }
 
-      const activeElection = electionRes.data;
-      setElection(activeElection);
-
-      const positionsRes = await api.get('/positions/elected');
-      const electedPositions = positionsRes.data;
-      setPositions(electedPositions);
-
-      const candidatesMap: Record<string, Candidate[]> = {};
-      for (const position of electedPositions) {
-        const candidatesRes = await api.get(`/candidates/position/${position._id}`);
-        const shuffled = candidatesRes.data.sort(() => Math.random() - 0.5);
-        candidatesMap[position._id] = shuffled;
-
-        const voteCheck = await api.get(`/votes/check/${activeElection._id}/${position._id}`);
-        if (voteCheck.data.hasVoted) {
-          setHasVoted(prev => ({ ...prev, [position._id]: true }));
+      if (electionRes.data) {
+        setElection(electionRes.data);
+        await loadElectionDetails(electionRes.data);
+      } else {
+        // Check for ended election
+        const endedRes = await api.get('/elections/ended/latest');
+        if (endedRes.data) {
+          setElection({ ...endedRes.data, status: 'ended' });
+        } else {
+          setMessage({ type: 'error', text: 'No active election at the moment' });
         }
       }
-      setCandidatesByPosition(candidatesMap);
     } catch (error: any) {
       setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to load election data' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadElectionDetails = async (activeElection: Election) => {
+    const positionsRes = await api.get('/positions/elected');
+    const electedPositions = positionsRes.data;
+    setPositions(electedPositions);
+
+    const candidatesMap: Record<string, Candidate[]> = {};
+    for (const position of electedPositions) {
+      const candidatesRes = await api.get(`/candidates/position/${position._id}`);
+      const shuffled = candidatesRes.data.sort(() => Math.random() - 0.5);
+      candidatesMap[position._id] = shuffled;
+
+      const voteCheck = await api.get(`/votes/check/${activeElection._id}/${position._id}`);
+      if (voteCheck.data.hasVoted) {
+        setHasVoted(prev => ({ ...prev, [position._id]: true }));
+      }
+    }
+    setCandidatesByPosition(candidatesMap);
   };
 
   const handleCandidateSelect = (positionId: string, candidateId: string) => {
@@ -123,12 +132,10 @@ const Voting: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen gradient-bg-subtle pattern-grid">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          </div>
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -136,14 +143,41 @@ const Voting: React.FC = () => {
 
   if (!election) {
     return (
-      <div className="min-h-screen gradient-bg-subtle pattern-grid">
+      <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
         <Navbar />
-        <div className="container mx-auto px-4 py-12">
-          <Card className="backdrop-blur-sm bg-card/90 border-2">
-            <CardContent className="p-6 text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">No Active Election</h2>
-              <p className="text-muted-foreground">There is no active election at the moment. Please check back later.</p>
-            </CardContent>
+        <div className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center relative z-10">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -z-10" />
+          <Card className="w-full max-w-lg border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl text-center p-8">
+            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
+              <Vote className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">No Active Election</h2>
+            <p className="text-muted-foreground">There are currently no elections in progress. Please check back later.</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (election.status === 'ended') {
+    return (
+      <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
+        <Navbar />
+        <div className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center relative z-10">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -z-10" />
+          <Card className="w-full max-w-lg border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl text-center p-8">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+              <CheckCircle2 className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Voting Completed</h2>
+            <p className="text-muted-foreground mb-8">The election "{election.name}" has ended. You can now view the results.</p>
+            <Button
+              onClick={() => navigate('/results')}
+              className="w-full rounded-xl shadow-lg shadow-primary/20"
+              size="lg"
+            >
+              View Results
+            </Button>
           </Card>
         </div>
       </div>
@@ -151,109 +185,132 @@ const Voting: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-bg-subtle pattern-grid relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-10 right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 left-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
-      </div>
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
       <Navbar />
-      <div className="container mx-auto px-4 py-12 relative z-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">{election.name}</h1>
-          <p className="text-sm text-muted-foreground">Select your preferred candidate for each position</p>
+
+      <div className="flex-1 container mx-auto px-4 py-12 relative z-10">
+        {/* Decorative Background */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none -z-10" />
+
+        <div className="mb-10 text-center max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-4">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            Live Election
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-4">{election.name}</h1>
+          <p className="text-lg text-muted-foreground">Cast your votes for the future leaders. Your voice matters.</p>
         </div>
 
         {message && (
           <div className={cn(
-            "mb-6 rounded-lg border p-4 text-sm",
-            message.type === 'success' 
-              ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300"
-              : "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300"
+            "max-w-2xl mx-auto mb-8 rounded-xl border p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2",
+            message.type === 'success'
+              ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-300"
+              : "border-destructive/20 bg-destructive/10 text-destructive"
           )}>
-            {message.text}
+            {message.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+            <p className="font-medium">{message.text}</p>
           </div>
         )}
 
-        <div className="space-y-8">
+        <div className="space-y-12 max-w-5xl mx-auto">
           {positions.map((position) => (
-            <Card key={position._id} className="backdrop-blur-sm bg-card/90 border-2">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-xl mb-2">{position.name}</CardTitle>
-                    {position.description && (
-                      <p className="text-sm text-muted-foreground">{position.description}</p>
-                    )}
-                  </div>
-                  {hasVoted[position._id] && (
-                    <div className="flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Voted
-                    </div>
+            <div key={position._id} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="flex items-center justify-between border-b border-border/50 pb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{position.name}</h2>
+                  {position.description && (
+                    <p className="text-muted-foreground mt-1">{position.description}</p>
                   )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {candidatesByPosition[position._id]?.length > 0 ? (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
-                      {candidatesByPosition[position._id].map((candidate) => {
-                        const isSelected = selectedCandidates[position._id] === candidate._id;
-                        const isDisabled = hasVoted[position._id];
-                        
-                        return (
-                          <Card
-                            key={candidate._id}
-                              className={cn(
-                              "cursor-pointer transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-105 backdrop-blur-sm bg-card/90 border-2",
-                              isSelected && "ring-2 ring-primary border-primary shadow-xl scale-105",
-                              isDisabled && "opacity-60 cursor-not-allowed hover:scale-100"
-                            )}
-                            onClick={() => !isDisabled && handleCandidateSelect(position._id, candidate._id)}
-                          >
-                            <CardContent className="p-6">
-                              <div className="flex flex-col items-center text-center">
-                                <div className="relative mb-4">
-                                  <img
-                                    src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${candidate.user.profilePhoto}`}
-                                    alt={candidate.user.name}
-                                    className="h-24 w-24 rounded-full object-cover border-2 border-border"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).src = '/default-avatar.png';
-                                    }}
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute -top-1 -right-1 rounded-full bg-primary p-1">
-                                      <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
-                                    </div>
-                                  )}
-                                </div>
-                                <h3 className="font-semibold text-foreground mb-2">{candidate.user.name}</h3>
-                                <p className="text-sm text-muted-foreground line-clamp-3">{candidate.manifesto}</p>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                    {!hasVoted[position._id] && (
-                      <div className="flex justify-end">
-                        <Button
-                          onClick={() => handleSubmitVote(position._id)}
-                          disabled={!selectedCandidates[position._id] || submitting}
-                          className="min-w-[120px]"
-                        >
-                          <Vote className="mr-2 h-4 w-4" />
-                          {submitting ? 'Submitting...' : 'Submit Vote'}
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">No candidates available for this position</p>
+                {hasVoted[position._id] && (
+                  <div className="flex items-center gap-2 rounded-full bg-green-100 px-4 py-1.5 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-900/50">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Voted
+                  </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+
+              {candidatesByPosition[position._id]?.length > 0 ? (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {candidatesByPosition[position._id].map((candidate) => {
+                    const isSelected = selectedCandidates[position._id] === candidate._id;
+                    const isDisabled = hasVoted[position._id];
+
+                    return (
+                      <div
+                        key={candidate._id}
+                        className={cn(
+                          "group relative rounded-2xl border bg-card transition-all duration-300 overflow-hidden",
+                          isSelected
+                            ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background shadow-xl scale-[1.02]"
+                            : "border-border/50 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1",
+                          isDisabled && "opacity-60 cursor-not-allowed hover:transform-none hover:shadow-none hover:border-border/50"
+                        )}
+                        onClick={() => !isDisabled && handleCandidateSelect(position._id, candidate._id)}
+                      >
+                        <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+                          <img
+                            src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${candidate.user.profilePhoto}`}
+                            alt={candidate.user.name}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/default-avatar.png';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+
+                          {isSelected && (
+                            <div className="absolute top-4 right-4 h-8 w-8 rounded-full bg-primary flex items-center justify-center shadow-lg animate-in zoom-in duration-200">
+                              <CheckCircle2 className="h-5 w-5 text-primary-foreground" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-5">
+                          <h3 className="font-bold text-lg text-foreground mb-1">{candidate.user.name}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                            {candidate.manifesto}
+                          </p>
+                        </div>
+
+                        {!isDisabled && isSelected && (
+                          <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t border-border/50 animate-in slide-in-from-bottom-2">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSubmitVote(position._id);
+                              }}
+                              disabled={submitting}
+                              className="w-full rounded-xl shadow-lg shadow-primary/20"
+                            >
+                              {submitting ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Confirming...
+                                </>
+                              ) : (
+                                <>
+                                  Confirm Vote
+                                  <Vote className="ml-2 h-4 w-4" />
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+                  <p className="text-muted-foreground">No candidates available for this position</p>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </div>

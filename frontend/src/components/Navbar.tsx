@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const Navbar: React.FC = () => {
@@ -10,6 +10,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -18,6 +19,15 @@ const Navbar: React.FC = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -36,276 +46,92 @@ const Navbar: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
-  const navLinks = user ? (
-    user.role === 'admin' ? (
-      <>
-        <Link
-          to="/admin"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-foreground",
-            isActive('/admin') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Dashboard
-        </Link>
-        <Link
-          to="/results"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-foreground",
-            isActive('/results') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Results
-        </Link>
-      </>
-    ) : (
-      <>
-        <Link
-          to="/voting"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-foreground",
-            isActive('/voting') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Vote
-        </Link>
-        <Link
-          to="/apply"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-foreground",
-            isActive('/apply') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Apply
-        </Link>
-        <Link
-          to="/results"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-foreground",
-            isActive('/results') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Results
-        </Link>
-        <Link
-          to="/profile"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-foreground",
-            isActive('/profile') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Profile
-        </Link>
-      </>
-    )
-  ) : (
-    <>
-      <Link
-        to="/login"
-        onClick={() => setMobileMenuOpen(false)}
-        className={cn(
-          "text-sm font-medium transition-colors hover:text-foreground",
-          isActive('/login') ? "text-foreground" : "text-muted-foreground"
-        )}
-      >
-        Login
-      </Link>
-      <Link
-        to="/signup"
-        onClick={() => setMobileMenuOpen(false)}
-        className={cn(
-          "text-sm font-medium transition-colors hover:text-foreground",
-          isActive('/signup') ? "text-foreground" : "text-muted-foreground"
-        )}
-      >
-        Sign Up
-      </Link>
-      <Link
-        to="/admin-login"
-        onClick={() => setMobileMenuOpen(false)}
-        className={cn(
-          "text-sm font-medium transition-colors hover:text-foreground",
-          isActive('/admin-login') ? "text-foreground" : "text-muted-foreground"
-        )}
-      >
-        Admin
-      </Link>
-    </>
+  const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
+    <Link
+      to={to}
+      className={cn(
+        "relative text-sm font-medium transition-all duration-300 hover:text-primary",
+        isActive(to) ? "text-primary" : "text-muted-foreground"
+      )}
+    >
+      {children}
+      <span className={cn(
+        "absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300",
+        isActive(to) ? "w-full" : "w-0 hover:w-full"
+      )} />
+    </Link>
   );
 
-  // Create array of mobile menu items for staggered animation
-  const getMobileMenuItems = () => {
-    const items = [];
-    
-    // Add nav links as individual items
-    if (user) {
-      if (user.role === 'admin') {
-        items.push(
-          <Link
-            key="admin-dashboard"
-            to="/admin"
-            onClick={() => setMobileMenuOpen(false)}
-            className={cn(
-              "block text-sm font-medium transition-colors hover:text-foreground py-2",
-              isActive('/admin') ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Dashboard
-          </Link>,
-          <Link
-            key="admin-results"
-            to="/results"
-            onClick={() => setMobileMenuOpen(false)}
-            className={cn(
-              "block text-sm font-medium transition-colors hover:text-foreground py-2",
-              isActive('/results') ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Results
-          </Link>
-        );
-      } else {
-        items.push(
-          <Link
-            key="voting"
-            to="/voting"
-            onClick={() => setMobileMenuOpen(false)}
-            className={cn(
-              "block text-sm font-medium transition-colors hover:text-foreground py-2",
-              isActive('/voting') ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Vote
-          </Link>,
-          <Link
-            key="apply"
-            to="/apply"
-            onClick={() => setMobileMenuOpen(false)}
-            className={cn(
-              "block text-sm font-medium transition-colors hover:text-foreground py-2",
-              isActive('/apply') ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Apply
-          </Link>,
-          <Link
-            key="results"
-            to="/results"
-            onClick={() => setMobileMenuOpen(false)}
-            className={cn(
-              "block text-sm font-medium transition-colors hover:text-foreground py-2",
-              isActive('/results') ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Results
-          </Link>,
-          <Link
-            key="profile"
-            to="/profile"
-            onClick={() => setMobileMenuOpen(false)}
-            className={cn(
-              "block text-sm font-medium transition-colors hover:text-foreground py-2",
-              isActive('/profile') ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Profile
-          </Link>
-        );
-      }
-      items.push(
-        <Link
-          key="leadership"
-          to="/leadership"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "block text-sm font-medium transition-colors hover:text-foreground py-2",
-            isActive('/leadership') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Leadership
-        </Link>,
-        <button
-          key="logout"
-          onClick={handleLogout}
-          className="block w-full text-left text-sm font-medium text-muted-foreground transition-colors hover:text-foreground py-2"
-        >
-          Logout
-        </button>
-      );
-    } else {
-      items.push(
-        <Link
-          key="login"
-          to="/login"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "block text-sm font-medium transition-colors hover:text-foreground py-2",
-            isActive('/login') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Login
-        </Link>,
-        <Link
-          key="signup"
-          to="/signup"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "block text-sm font-medium transition-colors hover:text-foreground py-2",
-            isActive('/signup') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Sign Up
-        </Link>,
-        <Link
-          key="admin-login"
-          to="/admin-login"
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            "block text-sm font-medium transition-colors hover:text-foreground py-2",
-            isActive('/admin-login') ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          Admin
-        </Link>
-      );
-    }
-    
-    return items;
-  };
+  const MobileNavLink = ({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) => (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={cn(
+        "flex items-center justify-between p-4 rounded-xl transition-all duration-200",
+        isActive(to)
+          ? "bg-primary/10 text-primary font-semibold"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+      )}
+    >
+      {children}
+      {isActive(to) && <ChevronRight className="h-4 w-4" />}
+    </Link>
+  );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <Link to="/" className="text-lg font-semibold text-foreground transition-opacity hover:opacity-80">
-          Club Voting System
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full transition-all duration-300 border-b border-transparent",
+        scrolled ? "glass-panel border-border/50 py-2" : "bg-transparent py-4"
+      )}
+    >
+      <div className="container flex h-14 items-center justify-between px-4">
+        <Link to="/" className="flex items-center gap-2 group">
+          <img
+            src="/logo.png"
+            alt="Bit Mavericks"
+            className="h-10 w-auto object-contain dark:invert transition-all duration-300 group-hover:scale-110"
+          />
+          <span className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
+            BitsMavericks
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-6 md:flex">
-          {navLinks}
-          {user && (
+        <nav className="hidden items-center gap-8 md:flex">
+          {user ? (
             <>
-              <Link
-                to="/leadership"
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-foreground",
-                  isActive('/leadership') ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                Leadership
-              </Link>
+              {user.role === 'admin' ? (
+                <>
+                  <NavLink to="/admin">Dashboard</NavLink>
+                  <NavLink to="/results">Results</NavLink>
+                </>
+              ) : (
+                <>
+                  <NavLink to="/voting">Vote</NavLink>
+                  <NavLink to="/apply">Apply</NavLink>
+                  <NavLink to="/results">Results</NavLink>
+                  <NavLink to="/profile">Profile</NavLink>
+                </>
+              )}
+              <NavLink to="/leadership">Leadership</NavLink>
+              <div className="h-6 w-px bg-border/50 mx-2" />
               <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-destructive"
               >
                 Logout
               </button>
+            </>
+          ) : (
+            <>
+              <NavLink to="/login">Login</NavLink>
+              <Link
+                to="/signup"
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+              >
+                Sign Up
+              </Link>
             </>
           )}
         </nav>
@@ -315,49 +141,59 @@ const Navbar: React.FC = () => {
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-md text-foreground hover:bg-accent transition-all duration-300"
+            className="md:hidden p-2 rounded-xl text-foreground hover:bg-accent transition-all duration-300"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
-              <X className="h-6 w-6 transition-transform duration-300 rotate-0" />
+              <X className="h-6 w-6" />
             ) : (
-              <Menu className="h-6 w-6 transition-transform duration-300" />
+              <Menu className="h-6 w-6" />
             )}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu - Slides down from top */}
+      {/* Mobile Menu Overlay */}
       <div
         className={cn(
-          "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-          mobileMenuOpen 
-            ? "max-h-screen opacity-100" 
-            : "max-h-0 opacity-0"
+          "md:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-xl transition-all duration-300",
+          mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
+        style={{ top: '60px' }}
       >
-        <nav className="container px-4 border-t border-border bg-background/95 backdrop-blur">
-          <div className={cn(
-            "space-y-1 transition-all duration-300",
-            mobileMenuOpen ? "py-4" : "py-0"
-          )}>
-            {getMobileMenuItems().map((item, index) => (
-              <div
-                key={item.key || index}
-                className={cn(
-                  "transition-all duration-300 ease-out",
-                  mobileMenuOpen
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 -translate-y-4"
-                )}
-                style={{
-                  transitionDelay: mobileMenuOpen ? `${index * 50}ms` : '0ms'
-                }}
+        <nav className="container p-4 space-y-2">
+          {user ? (
+            <>
+              {user.role === 'admin' ? (
+                <>
+                  <MobileNavLink to="/admin" onClick={() => setMobileMenuOpen(false)}>Dashboard</MobileNavLink>
+                  <MobileNavLink to="/results" onClick={() => setMobileMenuOpen(false)}>Results</MobileNavLink>
+                </>
+              ) : (
+                <>
+                  <MobileNavLink to="/voting" onClick={() => setMobileMenuOpen(false)}>Vote</MobileNavLink>
+                  <MobileNavLink to="/apply" onClick={() => setMobileMenuOpen(false)}>Apply</MobileNavLink>
+                  <MobileNavLink to="/results" onClick={() => setMobileMenuOpen(false)}>Results</MobileNavLink>
+                  <MobileNavLink to="/profile" onClick={() => setMobileMenuOpen(false)}>Profile</MobileNavLink>
+                </>
+              )}
+              <MobileNavLink to="/leadership" onClick={() => setMobileMenuOpen(false)}>Leadership</MobileNavLink>
+              <div className="h-px bg-border/50 my-4" />
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-between p-4 rounded-xl text-destructive hover:bg-destructive/10 transition-all duration-200 font-medium"
               >
-                {item}
-              </div>
-            ))}
-          </div>
+                Logout
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <MobileNavLink to="/login" onClick={() => setMobileMenuOpen(false)}>Login</MobileNavLink>
+              <MobileNavLink to="/signup" onClick={() => setMobileMenuOpen(false)}>Sign Up</MobileNavLink>
+              <MobileNavLink to="/admin-login" onClick={() => setMobileMenuOpen(false)}>Admin Access</MobileNavLink>
+            </>
+          )}
         </nav>
       </div>
     </header>

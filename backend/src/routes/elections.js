@@ -1,51 +1,24 @@
 import express from 'express';
-import Election from '../models/Election.js';
+import {
+  getAllElections,
+  getActiveElection,
+  getElectionById,
+  getLatestEndedElection
+} from '../controllers/electionController.js';
 
 const router = express.Router();
 
 // Get all elections
-router.get('/', async (req, res) => {
-  try {
-    const elections = await Election.find()
-      .populate('positions')
-      .sort({ createdAt: -1 });
-    res.json(elections);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+router.get('/', getAllElections);
 
 // Get active election
-router.get('/active', async (req, res) => {
-  try {
-    const election = await Election.findOne({ status: 'active' })
-      .populate('positions');
-    
-    if (!election) {
-      return res.json(null);
-    }
-    
-    res.json(election);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+router.get('/active', getActiveElection);
+
+// Get latest ended election
+router.get('/ended/latest', getLatestEndedElection);
 
 // Get single election
-router.get('/:id', async (req, res) => {
-  try {
-    const election = await Election.findById(req.params.id)
-      .populate('positions');
-    
-    if (!election) {
-      return res.status(404).json({ message: 'Election not found' });
-    }
-    
-    res.json(election);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+router.get('/:id', getElectionById);
 
 export default router;
 
