@@ -32,7 +32,7 @@ export const signup = async (req, res) => {
       name,
       email: email.toLowerCase(),
       password,
-      profilePhoto: `/uploads/${req.file.filename}`,
+      profilePhoto: req.file.path,
       role: 'member'
     });
 
@@ -120,7 +120,7 @@ export const adminLogin = async (req, res) => {
         name: 'Admin',
         email: process.env.ADMIN_EMAIL.toLowerCase(),
         password: password, // Will be hashed by pre-save hook
-        profilePhoto: '/uploads/default-admin.png', // You can add a default image
+        profilePhoto: 'https://ui-avatars.com/api/?name=Admin&background=random', // Default admin image
         role: 'admin'
       });
       await admin.save();

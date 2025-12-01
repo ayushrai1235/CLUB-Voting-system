@@ -26,6 +26,23 @@ export const getAllElections = async (req, res) => {
 // Get active election
 export const getActiveElection = async (req, res) => {
   try {
+    const now = new Date();
+
+    // 1. Check for upcoming elections that should be active
+    const upcomingElections = await Election.find({
+      status: 'upcoming',
+      startDate: { $lte: now }
+    });
+
+    // Update their status to active
+    if (upcomingElections.length > 0) {
+      await Promise.all(upcomingElections.map(async (election) => {
+        election.status = 'active';
+        await election.save();
+      }));
+    }
+
+    // 2. Find the currently active election
     const election = await Election.findOne({ status: 'active' })
       .populate('positions');
     
@@ -33,8 +50,8 @@ export const getActiveElection = async (req, res) => {
       return res.json(null);
     }
 
-    // Check if election has ended based on date
-    if (new Date(election.endDate) < new Date()) {
+    // 3. Check if election has ended based on date
+    if (new Date(election.endDate) < now) {
       election.status = 'ended';
       await election.save();
       return res.json(null);

@@ -90,11 +90,20 @@ const ManageElections: React.FC = () => {
 
   const handleEdit = (election: Election) => {
     setEditing(election);
+
+    // Helper to format date to local ISO string (YYYY-MM-DDThh:mm)
+    const toLocalISOString = (dateString: string) => {
+      const date = new Date(dateString);
+      const tzOffset = date.getTimezoneOffset() * 60000; // offset in milliseconds
+      const localISOTime = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
+      return localISOTime;
+    };
+
     setFormData({
       name: election.name,
       description: election.description || '',
-      startDate: new Date(election.startDate).toISOString().slice(0, 16),
-      endDate: new Date(election.endDate).toISOString().slice(0, 16),
+      startDate: toLocalISOString(election.startDate),
+      endDate: toLocalISOString(election.endDate),
       positions: election.positions.map(p => p._id)
     });
     setShowForm(true);

@@ -28,6 +28,7 @@ This guide will help you deploy the Voting System application. The backend will 
     - Scroll down to "Environment Variables" and add:
         - `MONGODB_URI`: Your MongoDB connection string (e.g., `mongodb+srv://...`).
         - `JWT_SECRET`: A strong random string for security.
+        - 
         - `ADMIN_EMAIL`: The email address for the admin account (e.g., `admin@example.com`).
         - `NODE_ENV`: `production` (Recommended for performance).
         - `PORT`: `10000` (Render sets this automatically, but good to be aware).
