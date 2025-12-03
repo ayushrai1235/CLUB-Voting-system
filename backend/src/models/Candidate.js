@@ -11,6 +11,11 @@ const candidateSchema = new mongoose.Schema({
     ref: 'Position',
     required: true
   },
+  election: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Election',
+    required: true
+  },
   manifesto: {
     type: String,
     required: true,
@@ -29,8 +34,8 @@ const candidateSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure one candidate per user per position
-candidateSchema.index({ user: 1, position: 1 }, { unique: true });
+// Ensure one candidate per user per position per election
+candidateSchema.index({ user: 1, position: 1, election: 1 }, { unique: true });
 
 export default mongoose.model('Candidate', candidateSchema);
 

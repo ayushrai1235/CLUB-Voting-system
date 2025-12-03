@@ -23,8 +23,8 @@ export const getAllElections = async (req, res) => {
   }
 };
 
-// Get active election
-export const getActiveElection = async (req, res) => {
+// Get all active and upcoming elections
+export const getActiveElections = async (req, res) => {
   try {
     const now = new Date();
 
@@ -42,22 +42,25 @@ export const getActiveElection = async (req, res) => {
       }));
     }
 
-    // 2. Find the currently active election
-    const election = await Election.findOne({ status: 'active' })
-      .populate('positions');
+    // 2. Find all active and upcoming elections
+    const elections = await Election.find({ 
+      status: { $in: ['active', 'upcoming'] } 
+    }).sort({ startDate: 1 }); // Sort by start date ascending
     
-    if (!election) {
-      return res.json(null);
-    }
+    // 3. Check if any active election has ended based on date
+    const updatedElections = await Promise.all(elections.map(async (election) => {
+      if (election.status === 'active' && new Date(election.endDate) < now) {
+        election.status = 'ended';
+        await election.save();
+        return null; // Filter out ended ones from this list
+      }
+      return election;
+    }));
 
-    // 3. Check if election has ended based on date
-    if (new Date(election.endDate) < now) {
-      election.status = 'ended';
-      await election.save();
-      return res.json(null);
-    }
+    // Filter out nulls (ended elections)
+    const activeElections = updatedElections.filter(e => e !== null);
     
-    res.json(election);
+    res.json(activeElections);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

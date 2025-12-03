@@ -16,6 +16,7 @@ import Results from './pages/Results';
 import Profile from './pages/Profile';
 import Leadership from './pages/Leadership';
 import CandidateApplication from './pages/CandidateApplication';
+import ElectionList from './pages/ElectionList';
 
 
 function App() {
@@ -23,57 +24,66 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/leadership" element={<Leadership />} />
-          
-          <Route
-            path="/admin/*"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
-          
-          <Route
-            path="/voting"
-            element={
-              <PrivateRoute>
-                <Voting />
-              </PrivateRoute>
-            }
-          />
-          
-          <Route
-            path="/results"
-            element={<Results />}
-          />
-          
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Profile />
-              </PrivateRoute>
-            }
-          />
-          
-          <Route
-            path="/apply"
-            element={
-              <PrivateRoute>
-                <CandidateApplication />
-              </PrivateRoute>
-            }
-          />
-          
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/leadership" element={<Leadership />} />
+
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/voting"
+              element={
+                <PrivateRoute>
+                  <ElectionList />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/voting/:electionId"
+              element={
+                <PrivateRoute>
+                  <Voting />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/results"
+              element={<Results />}
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/apply"
+              element={
+                <PrivateRoute>
+                  <CandidateApplication />
+                </PrivateRoute>
+              }
+            />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
       </AuthProvider>
     </ThemeProvider>
   );

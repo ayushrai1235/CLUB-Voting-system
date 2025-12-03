@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -39,6 +39,7 @@ interface Election {
 }
 
 const Voting: React.FC = () => {
+  const { electionId } = useParams<{ electionId: string }>();
   const navigate = useNavigate();
   const [election, setElection] = useState<Election | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -55,19 +56,19 @@ const Voting: React.FC = () => {
 
   const fetchElectionData = async () => {
     try {
-      const electionRes = await api.get('/elections/active');
+      if (!electionId) {
+        setMessage({ type: 'error', text: 'No election specified' });
+        setLoading(false);
+        return;
+      }
+
+      const electionRes = await api.get(`/elections/${electionId}`);
 
       if (electionRes.data) {
         setElection(electionRes.data);
         await loadElectionDetails(electionRes.data);
       } else {
-        // Check for ended election
-        const endedRes = await api.get('/elections/ended/latest');
-        if (endedRes.data) {
-          setElection({ ...endedRes.data, status: 'ended' });
-        } else {
-          setMessage({ type: 'error', text: 'No active election at the moment' });
-        }
+        setMessage({ type: 'error', text: 'Election not found' });
       }
     } catch (error: any) {
       setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to load election data' });

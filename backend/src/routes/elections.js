@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   getAllElections,
-  getActiveElection,
+  getActiveElections,
   getElectionById,
   getLatestEndedElection
 } from '../controllers/electionController.js';
@@ -11,8 +11,8 @@ const router = express.Router();
 // Get all elections
 router.get('/', getAllElections);
 
-// Get active election
-router.get('/active', getActiveElection);
+// Get active elections
+router.get('/active', getActiveElections);
 
 // Get latest ended election
 router.get('/ended/latest', getLatestEndedElection);

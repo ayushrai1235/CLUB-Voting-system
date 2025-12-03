@@ -20,22 +20,28 @@ const CandidateApplication: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [positions, setPositions] = useState<Position[]>([]);
+  const [elections, setElections] = useState<any[]>([]);
   const [selectedPosition, setSelectedPosition] = useState('');
+  const [selectedElection, setSelectedElection] = useState('');
   const [manifesto, setManifesto] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    fetchPositions();
+    fetchData();
   }, []);
 
-  const fetchPositions = async () => {
+  const fetchData = async () => {
     try {
-      const response = await api.get('/positions/elected');
-      setPositions(response.data);
+      const [positionsRes, electionsRes] = await Promise.all([
+        api.get('/positions/elected'),
+        api.get('/elections/active')
+      ]);
+      setPositions(positionsRes.data);
+      setElections(Array.isArray(electionsRes.data) ? electionsRes.data : []);
     } catch (error: any) {
-      setMessage({ type: 'error', text: 'Failed to load positions' });
+      setMessage({ type: 'error', text: 'Failed to load data' });
     } finally {
       setLoading(false);
     }
@@ -45,7 +51,7 @@ const CandidateApplication: React.FC = () => {
     e.preventDefault();
     setMessage(null);
 
-    if (!selectedPosition || !manifesto.trim()) {
+    if (!selectedPosition || !selectedElection || !manifesto.trim()) {
       setMessage({ type: 'error', text: 'Please fill all fields' });
       return;
     }
@@ -55,11 +61,13 @@ const CandidateApplication: React.FC = () => {
     try {
       await api.post('/candidates/apply', {
         positionId: selectedPosition,
+        electionId: selectedElection,
         manifesto: manifesto.trim()
       });
 
       setMessage({ type: 'success', text: 'Application submitted successfully! Waiting for admin approval.' });
       setSelectedPosition('');
+      setSelectedElection('');
       setManifesto('');
 
       setTimeout(() => {
@@ -134,6 +142,27 @@ const CandidateApplication: React.FC = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
+                  <label htmlFor="election" className="text-sm font-medium text-foreground mb-2 block">
+                    Select Election *
+                  </label>
+                  <select
+                    id="election"
+                    value={selectedElection}
+                    onChange={(e) => setSelectedElection(e.target.value)}
+                    required
+                    disabled={submitting}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Choose an election...</option>
+                    {elections.map((election) => (
+                      <option key={election._id} value={election._id}>
+                        {election.name} ({new Date(election.startDate).toLocaleDateString()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label htmlFor="position" className="text-sm font-medium text-foreground mb-2 block">
                     Select Position *
                   </label>
@@ -178,7 +207,7 @@ const CandidateApplication: React.FC = () => {
 
                 <Button
                   type="submit"
-                  disabled={submitting || !selectedPosition || !manifesto.trim()}
+                  disabled={submitting || !selectedPosition || !selectedElection || !manifesto.trim()}
                   className="w-full"
                 >
                   <Send className="mr-2 h-4 w-4" />

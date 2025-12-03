@@ -36,10 +36,10 @@ export const getApprovedCandidates = async (req, res) => {
 // Member: Apply as candidate
 export const applyForPosition = async (req, res) => {
   try {
-    const { positionId, manifesto } = req.body;
+    const { positionId, electionId, manifesto } = req.body;
     
-    if (!positionId || !manifesto) {
-      return res.status(400).json({ message: 'Please provide position and manifesto' });
+    if (!positionId || !electionId || !manifesto) {
+      return res.status(400).json({ message: 'Please provide position, election, and manifesto' });
     }
     
     // Check if position exists and is elected
@@ -51,21 +51,26 @@ export const applyForPosition = async (req, res) => {
     if (!position.isElected || position.isFixed) {
       return res.status(400).json({ message: 'Cannot apply for this position' });
     }
+
+    // Check if election exists (optional: check if active/upcoming)
+    // For now, we assume the frontend sends a valid active/upcoming election ID
     
-    // Check if user already applied for this position
+    // Check if user already applied for this position in this election
     const existingApplication = await Candidate.findOne({
       user: req.user._id,
-      position: positionId
+      position: positionId,
+      election: electionId
     });
     
     if (existingApplication) {
-      return res.status(400).json({ message: 'You have already applied for this position' });
+      return res.status(400).json({ message: 'You have already applied for this position in this election' });
     }
     
     // Create candidate application
     const candidate = new Candidate({
       user: req.user._id,
       position: positionId,
+      election: electionId,
       manifesto,
       status: 'pending'
     });
@@ -90,6 +95,7 @@ export const getMyApplications = async (req, res) => {
   try {
     const candidates = await Candidate.find({ user: req.user._id })
       .populate('position', 'name description')
+      .populate('election', 'name status')
       .sort({ createdAt: -1 });
     
     res.json(candidates);
