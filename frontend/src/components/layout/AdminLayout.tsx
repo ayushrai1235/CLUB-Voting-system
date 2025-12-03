@@ -50,11 +50,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Mobile Sidebar Overlay */}
       <div
         className={cn(
-          "md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40 transition-all duration-300",
+          "md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-[90] transition-all duration-300",
           sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setSidebarOpen(false)}
       />
+
+      {/* Mobile Sidebar */}
+      <div
+        className={cn(
+          "md:hidden fixed inset-y-0 left-0 w-72 z-[100] transform transition-transform duration-300 ease-out shadow-2xl",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <Sidebar onNavigate={() => setSidebarOpen(false)} />
+      </div>
 
       <div className="flex flex-1 relative z-10 h-[calc(100vh-4rem)] overflow-hidden">
         {/* Desktop Sidebar */}
@@ -62,15 +72,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <Sidebar />
         </div>
 
-        {/* Mobile Sidebar */}
-        <div
-          className={cn(
-            "md:hidden fixed inset-y-0 left-0 w-72 z-50 transform transition-transform duration-300 ease-out shadow-2xl",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-        >
-          <Sidebar onNavigate={() => setSidebarOpen(false)} />
-        </div>
+
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full scroll-smooth">
           <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

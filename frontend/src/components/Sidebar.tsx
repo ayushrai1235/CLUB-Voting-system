@@ -21,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <aside className="w-full h-full flex flex-col border-r border-border/50 bg-card shadow-xl md:shadow-none transition-all duration-300">
+    <aside className="w-full h-full flex flex-col border-r border-border/50 bg-background shadow-xl md:shadow-none transition-all duration-300">
       <div className="p-6 border-b border-border/50">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
