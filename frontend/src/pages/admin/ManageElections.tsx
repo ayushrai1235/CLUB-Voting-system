@@ -71,10 +71,15 @@ const ManageElections: React.FC = () => {
       return;
     }
 
+    // Treat the input time as IST by appending the offset
+    const toUTCFromIST = (dateString: string) => {
+      return new Date(`${dateString}:00+05:30`).toISOString();
+    };
+
     const payload = {
       ...formData,
-      startDate: new Date(formData.startDate).toISOString(),
-      endDate: new Date(formData.endDate).toISOString()
+      startDate: toUTCFromIST(formData.startDate),
+      endDate: toUTCFromIST(formData.endDate)
     };
 
     try {
