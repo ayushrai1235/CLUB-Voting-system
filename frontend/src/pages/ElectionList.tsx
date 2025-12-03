@@ -106,7 +106,7 @@ const ElectionList: React.FC = () => {
                                         <div className="space-y-4">
                                             <div className="flex items-center text-sm text-muted-foreground">
                                                 <Clock className="h-4 w-4 mr-2" />
-                                                Ends: {new Date(election.endDate).toLocaleDateString()} at {new Date(election.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                Ends: {new Date(election.endDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })} at {new Date(election.endDate).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
                                             </div>
                                             <Button
                                                 onClick={() => navigate(`/voting/${election._id}`)}
@@ -156,7 +156,7 @@ const ElectionList: React.FC = () => {
                                         <div className="space-y-4">
                                             <div className="flex items-center text-sm text-muted-foreground">
                                                 <Calendar className="h-4 w-4 mr-2" />
-                                                Starts: {new Date(election.startDate).toLocaleDateString()}
+                                                Starts: {new Date(election.startDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                             </div>
                                             <Button disabled variant="outline" className="w-full opacity-70 cursor-not-allowed">
                                                 Not Started Yet

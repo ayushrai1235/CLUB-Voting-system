@@ -71,12 +71,18 @@ const ManageElections: React.FC = () => {
       return;
     }
 
+    const payload = {
+      ...formData,
+      startDate: new Date(formData.startDate).toISOString(),
+      endDate: new Date(formData.endDate).toISOString()
+    };
+
     try {
       if (editing) {
-        await api.put(`/admin/elections/${editing._id}`, formData);
+        await api.put(`/admin/elections/${editing._id}`, payload);
         setMessage({ type: 'success', text: 'Election updated successfully' });
       } else {
-        await api.post('/admin/elections', formData);
+        await api.post('/admin/elections', payload);
         setMessage({ type: 'success', text: 'Election created successfully' });
       }
       setShowForm(false);
@@ -91,19 +97,20 @@ const ManageElections: React.FC = () => {
   const handleEdit = (election: Election) => {
     setEditing(election);
 
-    // Helper to format date to local ISO string (YYYY-MM-DDThh:mm)
-    const toLocalISOString = (dateString: string) => {
+    // Helper to format date to IST ISO string (YYYY-MM-DDThh:mm) for input
+    const toISTISOString = (dateString: string) => {
       const date = new Date(dateString);
-      const tzOffset = date.getTimezoneOffset() * 60000; // offset in milliseconds
-      const localISOTime = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
-      return localISOTime;
+      // IST is UTC + 5:30
+      const istOffset = 5.5 * 60 * 60 * 1000;
+      const istDate = new Date(date.getTime() + istOffset);
+      return istDate.toISOString().slice(0, 16);
     };
 
     setFormData({
       name: election.name,
       description: election.description || '',
-      startDate: toLocalISOString(election.startDate),
-      endDate: toLocalISOString(election.endDate),
+      startDate: toISTISOString(election.startDate),
+      endDate: toISTISOString(election.endDate),
       positions: election.positions.map(p => p._id)
     });
     setShowForm(true);
@@ -289,11 +296,11 @@ const ManageElections: React.FC = () => {
                       <div className="space-y-1 text-sm">
                         <p className="text-foreground">
                           <span className="font-medium">Start:</span>{' '}
-                          <span className="text-muted-foreground">{new Date(election.startDate).toLocaleString()}</span>
+                          <span className="text-muted-foreground">{new Date(election.startDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                         </p>
                         <p className="text-foreground">
                           <span className="font-medium">End:</span>{' '}
-                          <span className="text-muted-foreground">{new Date(election.endDate).toLocaleString()}</span>
+                          <span className="text-muted-foreground">{new Date(election.endDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                         </p>
                         <p className="text-foreground">
                           <span className="font-medium">Positions:</span>{' '}
