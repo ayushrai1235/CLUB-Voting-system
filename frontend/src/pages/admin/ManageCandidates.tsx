@@ -144,7 +144,11 @@ const ManageCandidates: React.FC = () => {
                   <div className="relative h-24 bg-gradient-to-r from-primary/10 to-primary/5">
                     <div className="absolute -bottom-10 left-6">
                       <img
-                        src={`http://localhost:5000${candidate.user.profilePhoto}`}
+                        src={
+                          candidate.user.profilePhoto.startsWith('http')
+                            ? candidate.user.profilePhoto
+                            : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${candidate.user.profilePhoto}`
+                        }
                         alt={candidate.user.name}
                         className="h-20 w-20 rounded-full border-4 border-background object-cover shadow-md"
                         onError={(e) => {

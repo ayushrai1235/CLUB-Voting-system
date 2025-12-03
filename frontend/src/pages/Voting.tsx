@@ -254,7 +254,11 @@ const Voting: React.FC = () => {
                       >
                         <div className="aspect-[4/3] relative overflow-hidden bg-muted">
                           <img
-                            src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${candidate.user.profilePhoto}`}
+                            src={
+                              candidate.user.profilePhoto.startsWith('http')
+                                ? candidate.user.profilePhoto
+                                : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${candidate.user.profilePhoto}`
+                            }
                             alt={candidate.user.name}
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                             onError={(e) => {

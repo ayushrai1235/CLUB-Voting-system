@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import cloudinary from '../config/cloudinary.js';
+import stream from 'stream';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -32,9 +34,39 @@ export const signup = async (req, res) => {
       name,
       email: email.toLowerCase(),
       password,
-      profilePhoto: req.file.path,
       role: 'member'
     });
+
+    // Handle file upload to Cloudinary
+    if (req.file) {
+      try {
+        const uploadPromise = new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'voting-system',
+              allowed_formats: ['jpg', 'png', 'jpeg'],
+              transformation: [{ width: 500, height: 500, crop: 'limit' }]
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          
+          const bufferStream = new stream.PassThrough();
+          bufferStream.end(req.file.buffer);
+          bufferStream.pipe(uploadStream);
+        });
+
+        const result = await uploadPromise;
+        user.profilePhoto = result.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({ message: 'Error uploading profile photo', error: uploadError.message });
+      }
+    } else {
+       return res.status(400).json({ message: 'Profile photo is required' });
+    }
 
     await user.save();
 

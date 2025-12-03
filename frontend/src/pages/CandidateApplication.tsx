@@ -61,7 +61,7 @@ const CandidateApplication: React.FC = () => {
       setMessage({ type: 'success', text: 'Application submitted successfully! Waiting for admin approval.' });
       setSelectedPosition('');
       setManifesto('');
-      
+
       setTimeout(() => {
         navigate('/profile');
       }, 2000);
@@ -88,7 +88,7 @@ const CandidateApplication: React.FC = () => {
         {message && (
           <div className={cn(
             "mb-6 rounded-lg border p-4 text-sm",
-            message.type === 'success' 
+            message.type === 'success'
               ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300"
               : "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300"
           )}>
@@ -107,7 +107,11 @@ const CandidateApplication: React.FC = () => {
             <CardContent>
               <div className="flex flex-col items-center text-center">
                 <img
-                  src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user?.profilePhoto}`}
+                  src={
+                    user?.profilePhoto?.startsWith('http')
+                      ? user.profilePhoto
+                      : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user?.profilePhoto}`
+                  }
                   alt={user?.name}
                   className="h-24 w-24 rounded-full object-cover border-2 border-border mb-4"
                   onError={(e) => {

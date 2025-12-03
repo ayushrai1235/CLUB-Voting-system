@@ -44,20 +44,20 @@ const Profile: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      pending: { 
+      pending: {
         class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300',
         icon: Clock,
-        text: 'Pending' 
+        text: 'Pending'
       },
-      approved: { 
+      approved: {
         class: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300',
         icon: CheckCircle2,
-        text: 'Approved' 
+        text: 'Approved'
       },
-      rejected: { 
+      rejected: {
         class: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300',
         icon: XCircle,
-        text: 'Rejected' 
+        text: 'Rejected'
       },
     };
     const badge = badges[status as keyof typeof badges] || badges.pending;
@@ -88,7 +88,11 @@ const Profile: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex flex-col items-center text-center">
                 <img
-                  src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user?.profilePhoto}`}
+                  src={
+                    user?.profilePhoto?.startsWith('http')
+                      ? user.profilePhoto
+                      : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user?.profilePhoto}`
+                  }
                   alt={user?.name}
                   className="h-24 w-24 rounded-full object-cover border-2 border-border mb-4"
                   onError={(e) => {

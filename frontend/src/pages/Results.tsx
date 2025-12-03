@@ -248,7 +248,11 @@ const Results: React.FC = () => {
                               <Trophy className="h-3 w-3" /> WINNER
                             </div>
                             <img
-                              src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${result.winner.user.profilePhoto}`}
+                              src={
+                                result.winner.user.profilePhoto.startsWith('http')
+                                  ? result.winner.user.profilePhoto
+                                  : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${result.winner.user.profilePhoto}`
+                              }
                               alt={result.winner.user.name}
                               className="h-24 w-24 rounded-full object-cover border-4 border-yellow-500/20 mb-3"
                               onError={(e) => {
