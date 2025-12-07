@@ -8,6 +8,7 @@ import ManagePositions from './admin/ManagePositions';
 import ManageCandidates from './admin/ManageCandidates';
 import ManageElections from './admin/ManageElections';
 import AdminStatistics from './admin/AdminStatistics';
+import ManageVoters from './admin/ManageVoters';
 
 const AdminDashboard: React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const AdminDashboard: React.FC = () => {
         <Route path="/positions" element={<ManagePositions />} />
         <Route path="/candidates" element={<ManageCandidates />} />
         <Route path="/elections" element={<ManageElections />} />
+        <Route path="/users" element={<ManageVoters />} />
         <Route path="/statistics" element={<AdminStatistics />} />
       </Routes>
     </AdminLayout>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { CheckCircle2, XCircle, Trash2, User, Mail, FileText } from 'lucide-react';
+import { CheckCircle2, XCircle, Trash2, User, Mail, FileText, Eye } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { Modal } from '../../components/ui/modal';
 
 interface Candidate {
   _id: string;
@@ -28,6 +29,8 @@ const ManageCandidates: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCandidates();
@@ -150,7 +153,12 @@ const ManageCandidates: React.FC = () => {
                             : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${candidate.user.profilePhoto}`
                         }
                         alt={candidate.user.name}
-                        className="h-20 w-20 rounded-full border-4 border-background object-cover shadow-md"
+                        className="h-20 w-20 rounded-full border-4 border-background object-cover shadow-md cursor-pointer hover:scale-105 transition-transform"
+                        onClick={() => setEnlargedImage(
+                          candidate.user.profilePhoto.startsWith('http')
+                            ? candidate.user.profilePhoto
+                            : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${candidate.user.profilePhoto}`
+                        )}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/default-avatar.png';
                         }}
@@ -186,15 +194,22 @@ const ManageCandidates: React.FC = () => {
                     </div>
 
                     <div className="pt-4 flex gap-2 border-t border-border/50">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="flex-1 rounded-lg"
+                        onClick={() => setSelectedCandidate(candidate)}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View
+                      </Button>
                       {candidate.status === 'pending' && (
                         <>
                           <Button size="sm" className="flex-1 rounded-lg bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(candidate._id)}>
-                            <CheckCircle2 className="mr-2 h-4 w-4" />
-                            Approve
+                            <CheckCircle2 className="h-4 w-4" />
                           </Button>
                           <Button size="sm" variant="destructive" className="flex-1 rounded-lg" onClick={() => handleReject(candidate._id)}>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Reject
+                            <XCircle className="h-4 w-4" />
                           </Button>
                         </>
                       )}
@@ -217,6 +232,118 @@ const ManageCandidates: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {selectedCandidate && (
+        <Modal
+          isOpen={!!selectedCandidate}
+          onClose={() => setSelectedCandidate(null)}
+          title="Candidate Details"
+          className="max-w-2xl"
+        >
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <img
+                src={
+                  selectedCandidate.user.profilePhoto.startsWith('http')
+                    ? selectedCandidate.user.profilePhoto
+                    : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedCandidate.user.profilePhoto}`
+                }
+                alt={selectedCandidate.user.name}
+                className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-md cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => setEnlargedImage(
+                  selectedCandidate.user.profilePhoto.startsWith('http')
+                    ? selectedCandidate.user.profilePhoto
+                    : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedCandidate.user.profilePhoto}`
+                )}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/default-avatar.png';
+                }}
+              />
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-foreground">{selectedCandidate.user.name}</h3>
+                <div className="flex items-center text-muted-foreground mt-1">
+                  <Mail className="h-4 w-4 mr-2" />
+                  {selectedCandidate.user.email}
+                </div>
+                <div className="mt-2">
+                  {getStatusBadge(selectedCandidate.status)}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Running For</div>
+              <div className="text-lg font-semibold text-primary">{selectedCandidate.position.name}</div>
+              <p className="text-sm text-muted-foreground mt-1">{selectedCandidate.position.description}</p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center font-medium text-foreground">
+                <FileText className="h-5 w-5 mr-2 text-muted-foreground" />
+                Manifesto
+              </div>
+              <div className="p-4 rounded-lg border border-border/50 bg-card/50 text-sm leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
+                {selectedCandidate.manifesto}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4 border-t border-border/50">
+              {selectedCandidate.status === 'pending' && (
+                <>
+                  <Button
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => {
+                      handleApprove(selectedCandidate._id);
+                      setSelectedCandidate(null);
+                    }}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Approve Application
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => {
+                      handleReject(selectedCandidate._id);
+                      setSelectedCandidate(null);
+                    }}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Reject Application
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="outline"
+                className="ml-auto hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+                onClick={() => {
+                  handleDelete(selectedCandidate._id);
+                  setSelectedCandidate(null);
+                }}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {enlargedImage && (
+        <Modal
+          isOpen={!!enlargedImage}
+          onClose={() => setEnlargedImage(null)}
+          className="max-w-4xl bg-transparent border-none shadow-none p-0"
+        >
+          <div className="flex items-center justify-center h-full">
+            <img
+              src={enlargedImage}
+              alt="Enlarged profile"
+              className="max-h-[85vh] max-w-full rounded-lg shadow-2xl object-contain"
+            />
+          </div>
+        </Modal>
       )}
     </div>
   );

@@ -14,6 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
 
   const navItems = [
     { to: '/admin', label: 'Overview', icon: LayoutDashboard },
+    { to: '/admin/users', label: 'Voters', icon: Users },
     { to: '/admin/positions', label: 'Positions', icon: Users },
     { to: '/admin/candidates', label: 'Candidates', icon: Vote },
     { to: '/admin/elections', label: 'Elections', icon: Calendar },
