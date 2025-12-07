@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string, isAdmin?: boolean) => Promise<void>;
   signup: (name: string, email: string, password: string, profilePhoto: File) => Promise<void>;
   logout: () => void;
+  updateUser: (userData: User) => void;
   loading: boolean;
 }
 
@@ -64,7 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const endpoint = isAdmin ? '/auth/admin-login' : '/auth/login';
       const response = await axios.post(endpoint, { email, password });
-      
+
       const { token: newToken, user: userData } = response.data;
       setToken(newToken);
       setUser(userData);
@@ -106,8 +107,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     delete axios.defaults.headers.common['Authorization'];
   };
 
+  const updateUser = (userData: User) => {
+    setUser(userData);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, signup, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

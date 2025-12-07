@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { User, Clock, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { User, Clock, CheckCircle2, XCircle, FileText, Camera, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface Application {
@@ -21,9 +21,10 @@ interface Application {
 }
 
 const Profile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -39,6 +40,35 @@ const Profile: React.FC = () => {
       console.error('Failed to fetch applications:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePhotoUpdate = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
+
+    try {
+      const response = await api.put('/users/profile-photo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      updateUser({ ...user, profilePhoto: response.data.profilePhoto });
+    } catch (error) {
+      console.error('Failed to update profile photo:', error);
+      alert('Failed to update profile photo');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -87,18 +117,38 @@ const Profile: React.FC = () => {
           <Card className="md:col-span-1 backdrop-blur-sm bg-card/90 border-2">
             <CardContent className="p-6">
               <div className="flex flex-col items-center text-center">
-                <img
-                  src={
-                    user?.profilePhoto?.startsWith('http')
-                      ? user.profilePhoto
-                      : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user?.profilePhoto}`
-                  }
-                  alt={user?.name}
-                  className="h-24 w-24 rounded-full object-cover border-2 border-border mb-4"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/default-avatar.png';
-                  }}
-                />
+                <div className="relative mb-4 group">
+                  <img
+                    src={
+                      user?.profilePhoto?.startsWith('http')
+                        ? user.profilePhoto
+                        : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user?.profilePhoto}`
+                    }
+                    alt={user?.name}
+                    className="h-24 w-24 rounded-full object-cover border-2 border-border group-hover:opacity-80 transition-opacity"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/default-avatar.png';
+                    }}
+                  />
+                  <label
+                    htmlFor="photo-upload"
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer transition-opacity"
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    ) : (
+                      <Camera className="h-6 w-6 text-white" />
+                    )}
+                  </label>
+                  <input
+                    type="file"
+                    id="photo-upload"
+                    className="hidden"
+                    accept="image/jpeg,image/png"
+                    onChange={handlePhotoUpdate}
+                    disabled={uploading}
+                  />
+                </div>
                 <h2 className="text-xl font-semibold text-foreground mb-1">{user?.name}</h2>
                 <p className="text-sm text-muted-foreground mb-3">{user?.email}</p>
                 <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">

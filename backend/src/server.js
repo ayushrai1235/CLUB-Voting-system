@@ -12,6 +12,7 @@ import candidateRoutes from './routes/candidates.js';
 import electionRoutes from './routes/elections.js';
 import voteRoutes from './routes/votes.js';
 import resultRoutes from './routes/results.js';
+import userRoutes from './routes/users.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api/candidates', candidateRoutes);
 app.use('/api/elections', electionRoutes);
 app.use('/api/votes', voteRoutes);
 app.use('/api/results', resultRoutes);
+app.use('/api/users', userRoutes);
 
 // Database connection
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/voting-system';
