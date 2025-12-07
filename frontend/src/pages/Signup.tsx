@@ -1,13 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { cn } from '../lib/utils';
-import { User, Mail, Lock, Upload, Loader2, ArrowRight, X, Check } from 'lucide-react';
-import { Modal } from '../components/ui/modal';
-import { Slider } from '../components/ui/slider';
+import { User, Mail, Lock, Upload, Loader2, ArrowRight } from 'lucide-react';
 
 const Signup: React.FC = () => {
   const [name, setName] = useState('');
@@ -17,17 +14,6 @@ const Signup: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Custom Cropper state
-  const [isCropping, setIsCropping] = useState(false);
-  const [tempImage, setTempImage] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-
-  const imageRef = useRef<HTMLImageElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -44,83 +30,15 @@ const Signup: React.FC = () => {
         return;
       }
 
+      setProfilePhoto(file);
+      setError('');
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setTempImage(reader.result as string);
-        setIsCropping(true);
-        setZoom(1);
-        setOffset({ x: 0, y: 0 });
+        setPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-      e.target.value = '';
     }
-  };
-
-  // Custom Cropper Logic
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    setOffset({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleCropSave = async () => {
-    if (!imageRef.current || !containerRef.current) return;
-
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size to desired output size (e.g., 400x400)
-    canvas.width = 400;
-    canvas.height = 400;
-
-    // Calculate drawing parameters
-    // The container is 400x400 (or whatever we set in CSS).
-    // The image is transformed by scale(zoom) and translate(offset.x, offset.y) relative to center?
-    // Actually, let's simplify. We render the image centered, then apply offset.
-
-    // We need to draw the visible portion of the image onto the canvas.
-    // The container represents the crop area.
-
-    const image = imageRef.current;
-
-    // Clear canvas
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // We want to draw the image such that what is seen in the container is drawn on canvas.
-    // Container center is (200, 200).
-    // Image is drawn at (200 + offset.x, 200 + offset.y) with scale 'zoom'.
-    // Origin of image transform is usually center.
-
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.translate(offset.x, offset.y);
-    ctx.scale(zoom, zoom);
-    // Draw image centered at current context origin
-    ctx.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
-
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const file = new File([blob], "profile-photo.jpg", { type: "image/jpeg" });
-        setProfilePhoto(file);
-        setPreview(URL.createObjectURL(blob));
-        setIsCropping(false);
-        setTempImage(null);
-      }
-    }, 'image/jpeg', 0.9);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -276,82 +194,6 @@ const Signup: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Custom Cropping Modal */}
-      <Modal
-        isOpen={isCropping}
-        onClose={() => {
-          setIsCropping(false);
-          setTempImage(null);
-        }}
-        title="Crop Profile Photo"
-        className="max-w-xl"
-      >
-        <div className="space-y-6">
-          <div
-            ref={containerRef}
-            className="relative h-[400px] w-full rounded-xl overflow-hidden bg-black cursor-move touch-none flex items-center justify-center"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            {tempImage && (
-              <img
-                ref={imageRef}
-                src={tempImage}
-                alt="Crop target"
-                draggable={false}
-                style={{
-                  transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
-                  transition: isDragging ? 'none' : 'transform 0.1s ease-out',
-                  maxWidth: 'none',
-                  maxHeight: 'none',
-                }}
-                className="select-none"
-              />
-            )}
-            {/* Overlay to show circular crop area hint */}
-            <div className="absolute inset-0 pointer-events-none border-[100px] border-black/50 rounded-full" style={{ borderRadius: '50%' }}></div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Zoom</span>
-              <span>{Math.round(zoom * 100)}%</span>
-            </div>
-            <Slider
-              value={[zoom]}
-              min={0.5}
-              max={3}
-              step={0.1}
-              onValueChange={(value) => setZoom(value[0])}
-              className="py-4"
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                setIsCropping(false);
-                setTempImage(null);
-              }}
-            >
-              <X className="mr-2 h-4 w-4" />
-              Cancel
-            </Button>
-            <Button
-              className="flex-1"
-              onClick={handleCropSave}
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Save Photo
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };
