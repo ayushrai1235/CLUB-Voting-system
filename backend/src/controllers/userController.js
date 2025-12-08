@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import cloudinary from '../config/cloudinary.js';
+import redisClient from '../config/redis.js';
 
 export const updateProfilePhoto = async (req, res) => {
   try {
@@ -62,6 +63,13 @@ export const updateProfilePhoto = async (req, res) => {
     // Update user
     user.profilePhoto = result.secure_url;
     await user.save();
+
+    // Invalidate Redis Cache
+    try {
+        await redisClient.del(`user:${user.email}`);
+    } catch (cacheError) {
+        console.error('Redis cache invalidate error:', cacheError);
+    }
 
     res.json({ 
       message: 'Profile photo updated successfully', 

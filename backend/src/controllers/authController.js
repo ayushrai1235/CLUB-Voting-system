@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import cloudinary from '../config/cloudinary.js';
 import stream from 'stream';
+import redisClient from '../config/redis.js';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -10,6 +11,7 @@ const generateToken = (userId) => {
 
 // Member Signup
 export const signup = async (req, res) => {
+  console.time('Signup Total');
   try {
     const { name, email, password } = req.body;
 
@@ -24,7 +26,10 @@ export const signup = async (req, res) => {
     }
 
     // Check if user already exists
+    console.time('User Lookup');
     const existingUser = await User.findOne({ email: email.toLowerCase() });
+    console.timeEnd('User Lookup');
+    
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
@@ -40,12 +45,13 @@ export const signup = async (req, res) => {
     // Handle file upload to Cloudinary
     if (req.file) {
       try {
+        console.time('Cloudinary Upload');
         const uploadPromise = new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               folder: 'voting-system',
               allowed_formats: ['jpg', 'png', 'jpeg'],
-              transformation: [{ width: 500, height: 500, crop: 'limit' }]
+              transformation: [{ width: 500, height: 500, crop: 'limit', quality: 'auto', fetch_format: 'auto' }]
             },
             (error, result) => {
               if (error) reject(error);
@@ -59,6 +65,7 @@ export const signup = async (req, res) => {
         });
 
         const result = await uploadPromise;
+        console.timeEnd('Cloudinary Upload');
         user.profilePhoto = result.secure_url;
       } catch (uploadError) {
         console.error('Cloudinary upload error:', uploadError);
@@ -68,10 +75,20 @@ export const signup = async (req, res) => {
        return res.status(400).json({ message: 'Profile photo is required' });
     }
 
+    console.time('User Save');
     await user.save();
+    console.timeEnd('User Save');
+
+    // Cache user in Redis
+    try {
+        await redisClient.setEx(`user:${user.email}`, 3600, JSON.stringify(user));
+    } catch (cacheError) {
+        console.error('Redis cache error:', cacheError);
+    }
 
     const token = generateToken(user._id);
 
+    console.timeEnd('Signup Total');
     res.status(201).json({
       message: 'User registered successfully',
       token,
@@ -91,6 +108,7 @@ export const signup = async (req, res) => {
 
 // Member Login
 export const login = async (req, res) => {
+  console.time('Login Total');
   try {
     const { email, password } = req.body;
 
@@ -98,20 +116,55 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
+    let user;
+    let isCacheHit = false;
+
+    // Check Redis Cache
+    try {
+        console.time('Redis Lookup');
+        const cachedUser = await redisClient.get(`user:${email.toLowerCase()}`);
+        console.timeEnd('Redis Lookup');
+        
+        if (cachedUser) {
+            user = new User(JSON.parse(cachedUser)); // Hydrate mongoose model to use methods like comparePassword
+            isCacheHit = true;
+        }
+    } catch (err) {
+        console.error('Redis error:', err);
+    }
+
+    if (!user) {
+        // Find user in DB
+        console.time('User Lookup');
+        user = await User.findOne({ email: email.toLowerCase() });
+        console.timeEnd('User Lookup');
+
+        if (user) {
+             // Cache for next time
+             try {
+                await redisClient.setEx(`user:${user.email}`, 3600, JSON.stringify(user));
+             } catch (cacheError) {
+                console.error('Redis cache set error:', cacheError);
+             }
+        }
+    }
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Check password
+    console.time('Password Compare');
     const isMatch = await user.comparePassword(password);
+    console.timeEnd('Password Compare');
+
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const token = generateToken(user._id);
 
+    console.timeEnd('Login Total');
     res.json({
       message: 'Login successful',
       token,
@@ -121,7 +174,8 @@ export const login = async (req, res) => {
         email: user.email,
         profilePhoto: user.profilePhoto,
         role: user.role
-      }
+      },
+      _cache: isCacheHit ? 'HIT' : 'MISS' // Debug info
     });
   } catch (error) {
     console.error('Login error:', error);
