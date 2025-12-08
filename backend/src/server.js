@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -13,8 +13,6 @@ import electionRoutes from './routes/elections.js';
 import voteRoutes from './routes/votes.js';
 import resultRoutes from './routes/results.js';
 import userRoutes from './routes/users.js';
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
