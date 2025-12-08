@@ -4,8 +4,9 @@ import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Vote, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Vote, CheckCircle2, Loader2, AlertCircle, User, Eye } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { Modal } from '../components/ui/modal';
 
 interface Position {
   _id: string;
@@ -49,6 +50,7 @@ const Voting: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [viewCandidate, setViewCandidate] = useState<Candidate | null>(null);
 
   useEffect(() => {
     fetchElectionData();
@@ -245,7 +247,7 @@ const Voting: React.FC = () => {
                       <div
                         key={candidate._id}
                         className={cn(
-                          "group relative rounded-2xl border bg-card transition-all duration-300 overflow-hidden",
+                          "group relative rounded-2xl border bg-card transition-all duration-300 overflow-hidden flex flex-col",
                           isSelected
                             ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background shadow-xl scale-[1.02]"
                             : "border-border/50 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1",
@@ -253,7 +255,7 @@ const Voting: React.FC = () => {
                         )}
                         onClick={() => !isDisabled && handleCandidateSelect(position._id, candidate._id)}
                       >
-                        <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+                        <div className="aspect-square relative overflow-hidden bg-muted">
                           <img
                             src={
                               candidate.user.profilePhoto.startsWith('http')
@@ -273,17 +275,30 @@ const Voting: React.FC = () => {
                               <CheckCircle2 className="h-5 w-5 text-primary-foreground" />
                             </div>
                           )}
+
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewCandidate(candidate);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Profile
+                          </Button>
                         </div>
 
-                        <div className="p-5">
+                        <div className="p-5 flex-1 flex flex-col">
                           <h3 className="font-bold text-lg text-foreground mb-1">{candidate.user.name}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed mb-4 flex-1">
                             {candidate.manifesto}
                           </p>
                         </div>
 
                         {!isDisabled && isSelected && (
-                          <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t border-border/50 animate-in slide-in-from-bottom-2">
+                          <div className="p-4 bg-background/80 backdrop-blur-sm border-t border-border/50 animate-in slide-in-from-bottom-2">
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -319,6 +334,61 @@ const Voting: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Candidate Details Modal */}
+      <Modal
+        isOpen={!!viewCandidate}
+        onClose={() => setViewCandidate(null)}
+        title="Candidate Profile"
+      >
+        {viewCandidate && (
+          <div className="space-y-6">
+            <div className="flex flex-col items-center text-center">
+              <div
+                className="h-32 w-32 rounded-full overflow-hidden border-4 border-primary/10 mb-4 shadow-xl cursor-zoom-in transition-transform hover:scale-105"
+                onClick={() => {
+                  const imgUrl = viewCandidate.user.profilePhoto.startsWith('http')
+                    ? viewCandidate.user.profilePhoto
+                    : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${viewCandidate.user.profilePhoto}`;
+                  window.open(imgUrl, '_blank');
+                }}
+                title="Click to view full size"
+              >
+                <img
+                  src={
+                    viewCandidate.user.profilePhoto.startsWith('http')
+                      ? viewCandidate.user.profilePhoto
+                      : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${viewCandidate.user.profilePhoto}`
+                  }
+                  alt={viewCandidate.user.name}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/default-avatar.png';
+                  }}
+                />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">{viewCandidate.user.name}</h3>
+              <p className="text-muted-foreground">{viewCandidate.position.name}</p>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Manifesto
+              </h4>
+              <div className="p-4 rounded-xl bg-muted/50 text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                {viewCandidate.manifesto}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button onClick={() => setViewCandidate(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
